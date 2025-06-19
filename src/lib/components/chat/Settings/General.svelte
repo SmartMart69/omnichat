@@ -279,8 +279,6 @@
 			/>
 		</div>
 
-		{#if $user?.role === 'admin' || $user?.permissions.chat?.controls}
-
 		{#if $user?.role === 'admin' || ($user?.permissions.chat?.controls ?? true)}
 			<div class="mt-2 space-y-3 pr-1.5">
 				<div class="flex justify-between items-center text-sm">
