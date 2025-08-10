@@ -30,7 +30,7 @@ WORKDIR /app
 RUN apk add --no-cache git
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --force
 
 COPY . .
 # ENV NODE_OPTIONS="--max-old-space-size=4096"

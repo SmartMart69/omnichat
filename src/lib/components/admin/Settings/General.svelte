@@ -90,7 +90,9 @@
 	};
 
 	onMount(async () => {
-		checkForVersionUpdates();
+		if ($config?.features?.enable_version_update_check) {
+			checkForVersionUpdates();
+		}
 
 		await Promise.all([
 			(async () => {
