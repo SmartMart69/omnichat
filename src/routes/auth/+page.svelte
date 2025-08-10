@@ -25,13 +25,24 @@
 	let name = '';
 	let email = '';
 	let password = '';
-
+	let confirmPassword = '';
 	let ldapUsername = '';
 
 	const querystringValue = (key) => {
 		const querystring = window.location.search;
 		const urlParams = new URLSearchParams(querystring);
 		return urlParams.get(key);
+	};
+
+	let showPassword = false;
+	let showConfirmPassword = false;
+
+	const togglePasswordVisibility = () => {
+		showPassword = !showPassword;
+	};
+
+	const toggleConfirmPasswordVisibility = () => {
+		showConfirmPassword = !showConfirmPassword;
 	};
 
 	const setSessionUser = async (sessionUser) => {
@@ -41,7 +52,6 @@
 			if (sessionUser.token) {
 				localStorage.token = sessionUser.token;
 			}
-
 			$socket.emit('user-join', { auth: { token: sessionUser.token } });
 			await user.set(sessionUser);
 			await config.set(await getBackendConfig());
@@ -61,13 +71,16 @@
 	};
 
 	const signUpHandler = async () => {
+		if (password !== confirmPassword) {
+        toast.error($i18n.t('Passwords do not match.'));
+        return;
+    }
 		const sessionUser = await userSignUp(name, email, password, generateInitialsImage(name)).catch(
 			(error) => {
 				toast.error(`${error}`);
 				return null;
 			}
 		);
-
 		await setSessionUser(sessionUser);
 	};
 
@@ -182,9 +195,9 @@
 					<img
 						id="logo"
 						crossorigin="anonymous"
-						src="{WEBUI_BASE_URL}/static/splash.png"
+						src="{WEBUI_BASE_URL}/static/favicon.png"
 						class=" w-6 rounded-full"
-						alt="logo"
+						alt=""
 					/>
 				</div>
 			</div>
@@ -231,7 +244,7 @@
 								</div>
 
 								{#if $config?.onboarding ?? false}
-									<div class=" mt-1 text-xs font-medium text-gray-500">
+									<div class="mt-1 text-xs font-medium text-gray-600 dark:text-gray-500">
 										ⓘ {$WEBUI_NAME}
 										{$i18n.t(
 											'does not make any external connections, and your data stays securely on your locally hosted server.'
@@ -243,60 +256,160 @@
 							{#if $config?.features.enable_login_form || $config?.features.enable_ldap}
 								<div class="flex flex-col mt-4">
 									{#if mode === 'signup'}
-										<div class="mb-2">
-											<div class=" text-sm font-medium text-left mb-1">{$i18n.t('Name')}</div>
-											<input
-												bind:value={name}
-												type="text"
-												class="my-0.5 w-full text-sm outline-hidden bg-transparent"
-												autocomplete="name"
-												placeholder={$i18n.t('Enter Your Full Name')}
-												required
-											/>
-										</div>
+									<!-- Name -->
+									<div class="mb-2">
+										<label for="name" class="text-sm font-medium text-left mb-1 block">
+										{$i18n.t('Name')}
+										</label>
+										<input
+										id="name"
+										bind:value={name}
+										type="text"
+										class="px-5 py-3 rounded-2xl w-full text-sm outline-none border dark:border-none dark:bg-gray-900"
+										autocomplete="name"
+										placeholder={$i18n.t('Enter Your Full Name')}
+										required
+										/>
+									</div>
 									{/if}
 
 									{#if mode === 'ldap'}
-										<div class="mb-2">
-											<div class=" text-sm font-medium text-left mb-1">{$i18n.t('Username')}</div>
-											<input
-												bind:value={ldapUsername}
-												type="text"
-												class="my-0.5 w-full text-sm outline-hidden bg-transparent"
-												autocomplete="username"
-												name="username"
-												placeholder={$i18n.t('Enter Your Username')}
-												required
-											/>
-										</div>
+									<!-- Username -->
+									<div class="mb-2">
+										<label for="username" class="text-sm font-medium text-left mb-1 block">
+										{$i18n.t('Username')}
+										</label>
+										<input
+										id="username"
+										bind:value={ldapUsername}
+										type="text"
+										class="px-5 py-3 rounded-2xl w-full text-sm outline-none border dark:border-none dark:bg-gray-900"
+										autocomplete="username"
+										name="username"
+										placeholder={$i18n.t('Enter Your Username')}
+										required
+										/>
+									</div>
 									{:else}
-										<div class="mb-2">
-											<div class=" text-sm font-medium text-left mb-1">{$i18n.t('Email')}</div>
-											<input
-												bind:value={email}
-												type="email"
-												class="my-0.5 w-full text-sm outline-hidden bg-transparent"
-												autocomplete="email"
-												name="email"
-												placeholder={$i18n.t('Enter Your Email')}
-												required
-											/>
-										</div>
+									<!-- E-Mail -->
+									<div class="mb-2">
+										<label for="email" class="text-sm font-medium text-left mb-1 block">
+										{$i18n.t('Email')}
+										</label>
+										<input
+										id="email"
+										bind:value={email}
+										type="email"
+										class="px-5 py-3 rounded-2xl w-full text-sm outline-none border dark:border-none dark:bg-gray-900"
+										autocomplete="email"
+										name="email"
+										placeholder={$i18n.t('Enter Your Email')}
+										required
+										/>
+									</div>
 									{/if}
 
+									<!-- Password -->
 									<div>
-										<div class=" text-sm font-medium text-left mb-1">{$i18n.t('Password')}</div>
-
+									<label for="password" class="text-sm font-medium text-left mb-1 block">
+										{$i18n.t('Password')}
+									</label>
+									<div class="relative">
+										{#if showPassword}
 										<input
+											id="password"
 											bind:value={password}
-											type="password"
-											class="my-0.5 w-full text-sm outline-hidden bg-transparent"
+											type="text"
+											class="px-5 py-3 rounded-2xl w-full text-sm outline-none border dark:border-none dark:bg-gray-900"
 											placeholder={$i18n.t('Enter Your Password')}
 											autocomplete="current-password"
 											name="current-password"
 											required
 										/>
+										{:else}
+										<input
+											id="password"
+											bind:value={password}
+											type="password"
+											class="px-5 py-3 rounded-2xl w-full text-sm outline-none border dark:border-none dark:bg-gray-900"
+											placeholder={$i18n.t('Enter Your Password')}
+											autocomplete="current-password"
+											name="current-password"
+											required
+										/>
+										{/if}
+
+										<!-- Toggle visibility -->
+										<button
+										type="button"
+										class="absolute inset-y-0 right-0 flex items-center px-3"
+										on:click={togglePasswordVisibility}
+										>
+										{#if showPassword}
+											<!-- eye-open SVG -->
+											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffaa33" width="24" height="24">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M21 12s-3.818-6-9-6-9 6-9 6 3.818 6 9 6 9-6 9-6zM15 12a3 3 0 11-6 0 3 3 0 016 0" />
+											</svg>
+										{:else}
+											<!-- eye-closed SVG -->
+											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffaa33" width="24" height="24">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M21 12s-3.818-6-9-6-9 6-9 6 3.818 6 9 6 9-6 9-6zM15 12a3 3 0 11-6 0 3 3 0 016 0M4.136 4.136L19.864 19.864" />
+											</svg>
+										{/if}
+										</button>
 									</div>
+									</div>
+
+									{#if mode === 'signup'}
+									<!-- Confirm password -->
+									<div class="mb-2">
+										<label for="confirm-password" class="text-sm font-medium text-left mb-1 mt-2 block">
+										{$i18n.t('Confirm Password')}
+										</label>
+										<div class="relative">
+										{#if showConfirmPassword}
+											<input
+											id="confirm-password"
+											bind:value={confirmPassword}
+											type="text"
+											class="px-5 py-3 rounded-2xl w-full text-sm outline-none border dark:border-none dark:bg-gray-900"
+											placeholder={$i18n.t('Confirm Password')}
+											autocomplete="new-password"
+											required
+											/>
+										{:else}
+											<input
+											id="confirm-password"
+											bind:value={confirmPassword}
+											type="password"
+											class="px-5 py-3 rounded-2xl w-full text-sm outline-none border dark:border-none dark:bg-gray-900"
+											placeholder={$i18n.t('Confirm Password')}
+											autocomplete="new-password"
+											required
+											/>
+										{/if}
+
+										<!-- Toggle confirm-visibility -->
+										<button
+											type="button"
+											class="absolute inset-y-0 right-0 flex items-center px-3"
+											on:click={toggleConfirmPasswordVisibility}
+										>
+											{#if showConfirmPassword}
+											<!-- eye-open -->
+											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffaa33" width="24" height="24">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M21 12s-3.818-6-9-6-9 6-9 6 3.818 6 9 6 9-6 9-6zM15 12a3 3 0 11-6 0 3 3 0 016 0" />
+											</svg>
+											{:else}
+											<!-- eye-closed -->
+											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffaa33" width="24" height="24">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M21 12s-3.818-6-9-6-9 6-9 6 3.818 6 9 6 9-6 9-6zM15 12a3 3 0 11-6 0 3 3 0 016 0M4.136 4.136L19.864 19.864" />
+											</svg>
+											{/if}
+										</button>
+										</div>
+									</div>
+									{/if}
 								</div>
 							{/if}
 							<div class="mt-5">
@@ -437,7 +550,7 @@
 											fill="none"
 											viewBox="0 0 24 24"
 											stroke-width="1.5"
-											stroke="currentColor"
+											stroke="#ffaa33"
 											class="size-6 mr-3"
 										>
 											<path
